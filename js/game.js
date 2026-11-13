@@ -43,7 +43,9 @@
       world: 'World ',
       shopPow: '⚡ Power',
       shopShield: '🛡️ Shield',
-      shopMagnet: '🧲 Magnet'
+      shopMagnet: '🧲 Magnet',
+      bossPhase1: 'HEATING UP!',
+      bossPhase2: 'ALMOST DOWN!'
     },
     id: {
       sub: 'Kumpulin pasukan, hancurin boss di ujung.',
@@ -73,7 +75,9 @@
       world: 'Dunia ',
       shopPow: '⚡ Kekuatan',
       shopShield: '🛡️ Shield',
-      shopMagnet: '🧲 Magnet'
+      shopMagnet: '🧲 Magnet',
+      bossPhase1: 'MAKIN PANAS!',
+      bossPhase2: 'TINGGAL DIKIT!'
     }
   };
   function t(k) { return (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k; }
@@ -659,7 +663,7 @@
       var ph = pct > 0.66 ? 0 : pct > 0.33 ? 1 : 2;
       if (ph !== bossPhase && bossHp > 0) {
         bossPhase = ph; $('bossBar').dataset.phase = ph;
-        showBanner(ph === 1 ? 'MAKIN PANAS!' : 'TINGGAL DIKIT!', ph === 1 ? '#ffc93c' : '#ff4d6d');
+        showBanner(ph === 1 ? t('bossPhase1') : t('bossPhase2'), ph === 1 ? '#ffc93c' : '#ff4d6d');
         flashVig('rgba(255,201,60,.7)'); hurtT = 0.3; beep(220, 0.3, 'square', 0.08);
         World.burst(boss.position.x, 2.5, boss.position.z, 0xffc93c, 30);
       }
