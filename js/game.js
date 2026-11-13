@@ -18,6 +18,9 @@
     en: {
       sub: 'Build your squad, defeat the boss at the end.',
       hint: 'Drag left / right, choose green gates',
+      hintRun: 'Drag left / right, choose a gate',
+      hintBoss: 'Avoid red danger zones!',
+      bossDefeated: 'BOSS DEFEATED!',
       stage: 'Stage',
       hangar: 'Hangar',
       upgrade: 'Upgrade',
@@ -34,11 +37,16 @@
       failInfo: 'Choose green gates, avoid red gates.<br>Coins collected: ?? ',
       powerInfo: 'Power: ',
       max: ' / max ',
-      stageComplete: '?? VICTORY!'
+      stageComplete: '?? VICTORY!',
+      rewardStage: 'stage',
+      rewardCoins: 'coins'
     },
     id: {
       sub: 'Kumpulin pasukan, hancurin boss di ujung.',
       hint: 'Geser kiri-kanan, pilih gerbang hijau',
+      hintRun: 'Geser kiri-kanan, pilih satu gerbang',
+      hintBoss: 'Hindari jalur merah!',
+      bossDefeated: 'BOSS HANCUR!',
       stage: 'Stage',
       hangar: 'Hangar',
       upgrade: 'Upgrade',
@@ -55,7 +63,9 @@
       failInfo: 'Pilih gerbang hijau, hindari yang merah.<br>Koin di jalan: ?? ',
       powerInfo: 'Kekuatan: ',
       max: ' / maks ',
-      stageComplete: '?? TAMAT!'
+      stageComplete: '?? TAMAT!',
+      rewardStage: 'stage',
+      rewardCoins: 'koin'
     }
   };
   function t(k) { return (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k; }
@@ -140,13 +150,13 @@
   }
 
   var SKINS = [
-    { id: 'basic', name: 'Jagoan Biru', body: 0x1e90ff, wing: 0xf5f7fa, flame: 0xffb020, price: 0 },
-    { id: 'flame', name: 'Api Merah', body: 0xff4d3d, wing: 0xffd9b0, flame: 0xff7a00, price: 120 },
-    { id: 'sakura', name: 'Sakura Delta', shape: 'delta', body: 0xff7eb6, wing: 0xffe3ef, flame: 0xff9ad0, price: 300 },
-    { id: 'mint', name: 'Mint Kilat', body: 0x2ee59d, wing: 0xeafff6, flame: 0x7affd0, price: 500, shape: 'delta' },
-    { id: 'volt', name: 'Kembar Petir', shape: 'twin', body: 0xffd23c, wing: 0x2b2250, flame: 0xfff07a, price: 800 },
-    { id: 'gold', name: 'Emas Sultan', body: 0xffc93c, wing: 0xfff2c2, flame: 0xfff07a, price: 1200, shape: 'delta' },
-    { id: 'void', name: 'Void Hitam', body: 0x2b2250, wing: 0x7b5cff, flame: 0xb18cff, price: 2000, shape: 'twin' }
+    { id: 'basic', name: 'Blue Ace', nameId: 'Jagoan Biru', body: 0x1e90ff, wing: 0xf5f7fa, flame: 0xffb020, price: 0 },
+    { id: 'flame', name: 'Red Flame', nameId: 'Api Merah', body: 0xff4d3d, wing: 0xffd9b0, flame: 0xff7a00, price: 120 },
+    { id: 'sakura', name: 'Sakura Delta', nameId: 'Sakura Delta', shape: 'delta', body: 0xff7eb6, wing: 0xffe3ef, flame: 0xff9ad0, price: 300 },
+    { id: 'mint', name: 'Mint Bolt', nameId: 'Mint Kilat', body: 0x2ee59d, wing: 0xeafff6, flame: 0x7affd0, price: 500, shape: 'delta' },
+    { id: 'volt', name: 'Twin Volt', nameId: 'Kembar Petir', shape: 'twin', body: 0xffd23c, wing: 0x2b2250, flame: 0xfff07a, price: 800 },
+    { id: 'gold', name: 'Royal Gold', nameId: 'Emas Sultan', body: 0xffc93c, wing: 0xfff2c2, flame: 0xfff07a, price: 1200, shape: 'delta' },
+    { id: 'void', name: 'Dark Void', nameId: 'Void Hitam', body: 0x2b2250, wing: 0x7b5cff, flame: 0xb18cff, price: 2000, shape: 'twin' }
   ];
   function shipSvg(s) {
     var b = hex(s.body), w = hex(s.wing), f = hex(s.flame), p;
@@ -434,7 +444,7 @@
       World.burst(-2, 3, lvl.endZ, 0x6c5ce7, 25);
       var b = boss; bossFlash(false);
       setTimeout(function () { b.visible = false; }, 450);
-      slow = 0.4; showBanner('BOSS HANCUR!', '#ffc93c'); flashVig('rgba(255,255,255,.95)', 1);
+      slow = 0.4; showBanner(t('bossDefeated'), '#ffc93c'); flashVig('rgba(255,255,255,.95)', 1);
       [0, 150, 300, 450, 600, 800].forEach(function (ms, i) {
         setTimeout(function () {
           World.burst(b.position.x + (Math.random() - 0.5) * 6, 2 + Math.random() * 3, lvl.endZ + 2, [0xffc93c, 0xff4d6d, 0xffffff, 0x5fd3ff][i % 4], 30);
