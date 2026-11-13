@@ -42,8 +42,10 @@ var World = (function () {
     G.body = new THREE.CylinderGeometry(0.1, 0.3, 2, 8);
     G.ring = new THREE.TorusGeometry(0.7, 0.12, 8, 16);
     G.diamond = new THREE.OctahedronGeometry(0.45);
+    G.cyl = new THREE.CylinderGeometry(1, 1, 1, 12);
+    G.ico = new THREE.IcosahedronGeometry(1, 0);
 
-    for (var i = 0; i < 120; i++) {
+    for (var i = 0; i < 180; i++) {
       var p = mesh(G.box, new THREE.MeshBasicMaterial({ color: 0xffffff }), 0, 0, 0, fxGroup);
       p.visible = false;
       fx.push({ m: p, life: 0, vx: 0, vy: 0, vz: 0, s: 0.2 });
@@ -232,10 +234,8 @@ var World = (function () {
   function makeShield(it) {
     var g = new THREE.Group();
     g.position.set(it.x, 1.2, it.z);
-    // Blue spinning diamond
     var d = mesh(G.diamond, new THREE.MeshLambertMaterial({ color: 0x00b4ff, emissive: 0x005577, transparent: true, opacity: 0.85 }), 0, 0, 0, g);
     d.scale.set(1.2, 1.2, 1.2);
-    // Outer ring
     var r = mesh(G.ring, new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.5 }), 0, 0, 0, g);
     r.scale.set(1.8, 1.8, 1.8);
     g.userData.diamond = d;
@@ -247,14 +247,11 @@ var World = (function () {
   function makeMagnet(it) {
     var g = new THREE.Group();
     g.position.set(it.x, 1.2, it.z);
-    // Red U-shaped magnet visual (using boxes)
     mesh(G.box, mat(0xff3333), -0.3, 0.3, 0, g).scale.set(0.3, 0.9, 0.3);
     mesh(G.box, mat(0xff3333), 0.3, 0.3, 0, g).scale.set(0.3, 0.9, 0.3);
     mesh(G.box, mat(0xff3333), 0, 0.8, 0, g).scale.set(0.9, 0.3, 0.3);
-    // Tips
     mesh(G.box, mat(0xcccccc), -0.3, -0.15, 0, g).scale.set(0.3, 0.25, 0.3);
     mesh(G.box, mat(0xcccccc), 0.3, -0.15, 0, g).scale.set(0.3, 0.25, 0.3);
-    // Glow ring
     var r = mesh(G.ring, new THREE.MeshBasicMaterial({ color: 0xff5555, transparent: true, opacity: 0.4 }), 0, 0.4, 0, g);
     r.scale.set(1.6, 1.6, 1.6);
     g.userData.ring = r;
@@ -262,24 +259,207 @@ var World = (function () {
     return g;
   }
 
+  // ====== BOSS DESIGNS per theme kind ======
+  // Each returns a THREE.Group
+  var BOSS_DESIGNS = {
+    // Cloud worlds — Giant floating Jellyfish mech
+    cloud: function(g, s, col) {
+      // Dome head
+      mesh(G.sphere, mat(col, { transparent: true, opacity: 0.8 }), 0, 1.2 * s, 0, g).scale.set(3 * s, 2.2 * s, 3 * s);
+      // Brain core glowing
+      mesh(G.sphere, new THREE.MeshBasicMaterial({ color: 0xff5252 }), 0, 1.4 * s, 0, g).scale.set(1.2 * s, 0.9 * s, 1.2 * s);
+      // Eyes (menacing)
+      [-1, 1].forEach(function(k) {
+        mesh(G.sphere, new THREE.MeshBasicMaterial({ color: 0xff0000 }), k * 1.2 * s, 1.6 * s, 2 * s, g).scale.setScalar(0.4 * s);
+        mesh(G.sphere, new THREE.MeshBasicMaterial({ color: 0xffff00 }), k * 1.2 * s, 1.6 * s, 2.15 * s, g).scale.setScalar(0.18 * s);
+      });
+      // Tentacle arms (6 of them)
+      for (var t = 0; t < 6; t++) {
+        var ang = (t / 6) * Math.PI * 2;
+        var tx = Math.sin(ang) * 2.5 * s, tz = Math.cos(ang) * 2.5 * s;
+        mesh(G.cyl, mat(col), tx, -0.5 * s, tz, g).scale.set(0.35 * s, 2.5 * s, 0.35 * s);
+        mesh(G.sphere, new THREE.MeshBasicMaterial({ color: 0xff3b5c }), tx, -1.8 * s, tz, g).scale.setScalar(0.4 * s);
+      }
+      // Cannons
+      [-1, 1].forEach(function(k) {
+        var cn = mesh(G.body, mat(0x444444), k * 3 * s, 0.5 * s, 1.5 * s, g);
+        cn.scale.set(0.6 * s, 1.5 * s, 0.6 * s); cn.rotation.x = -Math.PI / 2;
+      });
+    },
+    // Rock/Desert — Scorpion Mecha
+    rock: function(g, s, col) {
+      // Body
+      mesh(G.box, mat(col), 0, 0, 0, g).scale.set(4 * s, 1.5 * s, 3 * s);
+      // Armored plates
+      mesh(G.box, mat(0x2d3436), 0, 0.8 * s, 0, g).scale.set(3.5 * s, 0.4 * s, 2.8 * s);
+      // Tail (stinger — 3 segments arching up)
+      mesh(G.box, mat(col), 0, 1.5 * s, -1.5 * s, g).scale.set(0.8 * s, 0.8 * s, 2 * s);
+      mesh(G.box, mat(col), 0, 2.8 * s, -2.2 * s, g).scale.set(0.6 * s, 0.6 * s, 1.5 * s);
+      mesh(G.cone, new THREE.MeshBasicMaterial({ color: 0xff3b5c }), 0, 3.6 * s, -1.5 * s, g).scale.set(0.5 * s, 1.5 * s, 0.5 * s);
+      // Claws
+      [-1, 1].forEach(function(k) {
+        mesh(G.box, mat(col), k * 3.5 * s, -0.2 * s, 2 * s, g).scale.set(1.5 * s, 0.8 * s, 1.5 * s);
+        mesh(G.cone, mat(0x2d3436), k * 4.2 * s, -0.2 * s, 3 * s, g).scale.set(0.6 * s, 1.2 * s, 0.6 * s);
+      });
+      // Eyes
+      [-1, 1].forEach(function(k) {
+        mesh(G.sphere, new THREE.MeshBasicMaterial({ color: 0xff0000 }), k * 1 * s, 0.7 * s, 1.5 * s, g).scale.setScalar(0.35 * s);
+      });
+      // Cannons on claws
+      [-1, 1].forEach(function(k) {
+        var cn = mesh(G.body, mat(0x444444), k * 3.5 * s, 0.3 * s, 2.8 * s, g);
+        cn.scale.set(0.5 * s, 1 * s, 0.5 * s); cn.rotation.x = -Math.PI / 2;
+      });
+    },
+    // Pine/Forest — Giant Spider Tank
+    pine: function(g, s, col) {
+      // Central body sphere
+      mesh(G.sphere, mat(col), 0, 0.5 * s, 0, g).scale.set(2.5 * s, 2 * s, 3 * s);
+      // Head
+      mesh(G.sphere, mat(0x2d3436), 0, 1 * s, 2 * s, g).scale.set(1.5 * s, 1.2 * s, 1.5 * s);
+      // 8 eyes
+      for (var e = 0; e < 4; e++) {
+        var ex = (e - 1.5) * 0.5 * s;
+        mesh(G.sphere, new THREE.MeshBasicMaterial({ color: e < 2 ? 0xff0000 : 0xff6600 }), ex, 1.3 * s, 2.8 * s, g).scale.setScalar(0.2 * s);
+      }
+      // Legs (8 spider legs)
+      [-1, 1].forEach(function(k) {
+        for (var l = 0; l < 4; l++) {
+          var lz = (l - 1.5) * 1.5 * s;
+          var upper = mesh(G.box, mat(0x2d3436), k * 2.5 * s, 1 * s, lz, g);
+          upper.scale.set(2 * s, 0.3 * s, 0.3 * s); upper.rotation.z = k * 0.4;
+          var lower = mesh(G.box, mat(col), k * 4 * s, -0.5 * s, lz, g);
+          lower.scale.set(0.25 * s, 2 * s, 0.25 * s);
+        }
+      });
+      // Cannons (front mandibles)
+      [-1, 1].forEach(function(k) {
+        var cn = mesh(G.body, mat(0x444444), k * 1 * s, 0.5 * s, 3 * s, g);
+        cn.scale.set(0.5 * s, 1.2 * s, 0.5 * s); cn.rotation.x = -Math.PI / 2;
+      });
+    },
+    // Palm/Tropical — Kraken mech
+    palm: function(g, s, col) {
+      // Main body
+      mesh(G.sphere, mat(col), 0, 0, 0, g).scale.set(3 * s, 2 * s, 2.5 * s);
+      // Head with beak
+      mesh(G.cone, mat(0x2d3436), 0, 0.5 * s, 2.5 * s, g).scale.set(1.5 * s, 2.5 * s, 1.5 * s);
+      // Giant eyes
+      [-1, 1].forEach(function(k) {
+        mesh(G.sphere, mat(0xffeaa7), k * 1.3 * s, 0.8 * s, 1.8 * s, g).scale.set(0.7 * s, 0.9 * s, 0.5 * s);
+        mesh(G.sphere, new THREE.MeshBasicMaterial({ color: 0xff0000 }), k * 1.3 * s, 0.8 * s, 2 * s, g).scale.setScalar(0.3 * s);
+      });
+      // 8 tentacles
+      for (var t = 0; t < 8; t++) {
+        var ang = (t / 8) * Math.PI * 2;
+        var tx = Math.sin(ang) * 3 * s, tz = Math.cos(ang) * 2 * s;
+        mesh(G.cyl, mat(col), tx, -1 * s, tz, g).scale.set(0.4 * s, 3 * s, 0.4 * s);
+      }
+      // Cannons
+      [-1, 1].forEach(function(k) {
+        var cn = mesh(G.body, mat(0x444444), k * 2 * s, -0.5 * s, 2 * s, g);
+        cn.scale.set(0.5 * s, 1.3 * s, 0.5 * s); cn.rotation.x = -Math.PI / 2;
+      });
+    },
+    // Volcano/Lava — Dragon Mech
+    volcano: function(g, s, col) {
+      // Dragon body
+      mesh(G.box, mat(col, { emissive: 0x330a00 }), 0, 0, 0, g).scale.set(3.5 * s, 2 * s, 5 * s);
+      // Head
+      mesh(G.box, mat(col, { emissive: 0x330a00 }), 0, 0.8 * s, 3 * s, g).scale.set(2 * s, 1.5 * s, 2 * s);
+      // Horns
+      [-1, 1].forEach(function(k) {
+        var horn = mesh(G.cone, new THREE.MeshBasicMaterial({ color: 0xff4400 }), k * 0.8 * s, 2 * s, 2.8 * s, g);
+        horn.scale.set(0.3 * s, 1.5 * s, 0.3 * s);
+      });
+      // Fiery eyes
+      [-1, 1].forEach(function(k) {
+        mesh(G.sphere, new THREE.MeshBasicMaterial({ color: 0xff4400 }), k * 0.7 * s, 1 * s, 4 * s, g).scale.setScalar(0.35 * s);
+        mesh(G.sphere, new THREE.MeshBasicMaterial({ color: 0xffff00 }), k * 0.7 * s, 1 * s, 4.1 * s, g).scale.setScalar(0.15 * s);
+      });
+      // Wings
+      [-1, 1].forEach(function(k) {
+        var wing = mesh(G.cone, mat(col, { emissive: 0x330a00 }), k * 4 * s, 1 * s, -1 * s, g);
+        wing.scale.set(3 * s, 0.15 * s, 3 * s); wing.rotation.z = k * -0.3;
+      });
+      // Tail
+      mesh(G.cyl, mat(col), 0, -0.3 * s, -3.5 * s, g).scale.set(0.6 * s, 0.6 * s, 3 * s);
+      mesh(G.cone, new THREE.MeshBasicMaterial({ color: 0xff3b00 }), 0, -0.3 * s, -5 * s, g).scale.set(0.8 * s, 2 * s, 0.8 * s);
+      // Fire breath cannons
+      [-1, 1].forEach(function(k) {
+        var cn = mesh(G.body, mat(0x444444), k * 0.5 * s, 0.2 * s, 4.5 * s, g);
+        cn.scale.set(0.4 * s, 1.2 * s, 0.4 * s); cn.rotation.x = -Math.PI / 2;
+      });
+    },
+    // Tower/City — Giant Mecha Robot
+    tower: function(g, s, col) {
+      // Torso
+      mesh(G.box, mat(col), 0, 0, 0, g).scale.set(3 * s, 3 * s, 2 * s);
+      // Head
+      mesh(G.box, mat(0x2d3436), 0, 2.2 * s, 0, g).scale.set(1.8 * s, 1.3 * s, 1.5 * s);
+      // Visor eye
+      mesh(G.box, new THREE.MeshBasicMaterial({ color: 0xff0000 }), 0, 2.3 * s, 0.8 * s, g).scale.set(1.4 * s, 0.3 * s, 0.1 * s);
+      // Shoulders
+      [-1, 1].forEach(function(k) {
+        mesh(G.box, mat(col), k * 2.5 * s, 1.5 * s, 0, g).scale.set(2 * s, 1 * s, 1.8 * s);
+        // Arms
+        mesh(G.box, mat(0x636e72), k * 3.5 * s, 0, 0, g).scale.set(0.8 * s, 2.5 * s, 0.8 * s);
+        // Fists
+        mesh(G.box, mat(0x2d3436), k * 3.5 * s, -1.5 * s, 0, g).scale.set(1 * s, 0.8 * s, 1 * s);
+        // Shoulder missiles
+        mesh(G.cyl, mat(0x636e72), k * 2.5 * s, 2.3 * s, 0, g).scale.set(0.4 * s, 0.8 * s, 0.4 * s);
+      });
+      // Legs
+      [-1, 1].forEach(function(k) {
+        mesh(G.box, mat(0x636e72), k * 1.2 * s, -2.5 * s, 0, g).scale.set(1 * s, 2 * s, 1 * s);
+      });
+      // Core reactor glow
+      mesh(G.sphere, new THREE.MeshBasicMaterial({ color: 0x00ffff }), 0, 0, 1.1 * s, g).scale.setScalar(0.5 * s);
+      // Cannons
+      [-1, 1].forEach(function(k) {
+        var cn = mesh(G.body, mat(0x444444), k * 3.5 * s, -0.5 * s, 0.8 * s, g);
+        cn.scale.set(0.5 * s, 1.2 * s, 0.5 * s); cn.rotation.x = -Math.PI / 2;
+      });
+    },
+    // Crystal/Space — Eldritch Crystal Entity
+    crystal: function(g, s, col) {
+      // Core crystal
+      mesh(G.octa, mat(col, { emissive: 0x3a1f8f, transparent: true, opacity: 0.85 }), 0, 0.5 * s, 0, g).scale.set(2 * s, 3 * s, 2 * s);
+      // Orbiting shards
+      for (var i = 0; i < 6; i++) {
+        var ang = (i / 6) * Math.PI * 2;
+        var sx = Math.sin(ang) * 3.5 * s, sz = Math.cos(ang) * 3.5 * s;
+        var shard = mesh(G.octa, mat(col, { emissive: 0x5a2fa0 }), sx, (Math.sin(ang * 2) * 1.5) * s, sz, g);
+        shard.scale.set(0.6 * s, 1.5 * s, 0.6 * s);
+        shard.rotation.z = ang;
+      }
+      // Central eye
+      mesh(G.sphere, new THREE.MeshBasicMaterial({ color: 0xff00ff }), 0, 0.8 * s, 1.8 * s, g).scale.set(0.7 * s, 0.7 * s, 0.3 * s);
+      mesh(G.sphere, new THREE.MeshBasicMaterial({ color: 0xffffff }), 0, 0.8 * s, 1.95 * s, g).scale.setScalar(0.2 * s);
+      // Energy rings
+      mesh(G.ring, new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.5 }), 0, 0.5 * s, 0, g).scale.set(4 * s, 4 * s, 4 * s);
+      // Cannons
+      [-1, 1].forEach(function(k) {
+        var cn = mesh(G.body, mat(0x444444), k * 2 * s, 0, 1.5 * s, g);
+        cn.scale.set(0.5 * s, 1 * s, 0.5 * s); cn.rotation.x = -Math.PI / 2;
+      });
+    }
+  };
+
   function makeBoss(z, big, k) {
     var g = new THREE.Group(), s = big ? 1.5 : 1, col = BC[(k || 0) % BC.length];
     g.position.set(0, 2.2, z);
-    mesh(G.box, mat(col), 0, 0, 0, g).scale.set(3.4 * s, 1.5 * s, 4.6 * s);
-    mesh(G.box, mat(0x2d3436), 0, -0.1, 0.3, g).scale.set(9.5 * s, 0.35 * s, 2.2 * s);
-    mesh(G.sphere, mat(0xffeaa7, { emissive: 0x806000 }), 0, 0.7 * s, 1.2 * s, g).scale.set(0.9 * s, 0.6 * s, 1.1 * s);
-    [-1, 1].forEach(function (k) {
-      mesh(G.box, mat(0x636e72), k * 3.4 * s, -0.3, 1.4 * s, g).scale.set(0.5 * s, 0.5 * s, 2.4 * s);
-      mesh(G.sphere, new THREE.MeshBasicMaterial({ color: 0xff5252 }), k * 1.1 * s, 0.2, 2.35 * s, g).scale.setScalar(0.3 * s);
-    });
-    // Cannons
-    [-1, 1].forEach(function (k) {
-      var cannon = mesh(G.body, mat(0x444444), k * 4.2 * s, 0, 0.5 * s, g);
-      cannon.scale.set(0.5 * s, 1.2 * s, 0.5 * s);
-      cannon.rotation.x = -Math.PI / 2;
-    });
-    var fin = mesh(G.box, new THREE.MeshBasicMaterial({ color: 0xffffff }), 0, -2.14, 22, g);
+
+    // Determine theme kind from the current theme index k
+    var themeIdx = (k || 0) % THEMES.length;
+    var kind = THEMES[themeIdx].kind;
+    var builder = BOSS_DESIGNS[kind] || BOSS_DESIGNS.tower;
+    builder(g, s, col);
+
+    // Finish line — added to levelGroup directly, NOT as child of boss
+    var fin = mesh(G.box, new THREE.MeshBasicMaterial({ color: 0xffffff }), 0, -2.14 + 2.2, z + 22, levelGroup);
     fin.scale.set(TRACK_HALF * 2, 0.05, 1.2);
+
     levelGroup.add(g);
     return g;
   }
@@ -294,10 +474,40 @@ var World = (function () {
     p[1 - i].material = dimM; l[1 - i].visible = false;
   }
   function gateFade(g) { setTimeout(function () { g.visible = false; }, 450); }
+
+  // ====== BOSS ATTACK VISUALS — big red columns + ground pulse ======
   function warn(x, w, z0, z1) {
-    var m = mesh(G.box, new THREE.MeshBasicMaterial({ color: 0xff3b5c, transparent: true, opacity: 0.4, depthWrite: false }), x, 0.12, (z0 + z1) / 2, levelGroup);
-    m.scale.set(w, 0.08, Math.abs(z1 - z0));
-    return m;
+    var group = new THREE.Group();
+
+    // Ground danger zone (wider, more visible)
+    var ground = mesh(G.box, new THREE.MeshBasicMaterial({
+      color: 0xff3b5c, transparent: true, opacity: 0.5, depthWrite: false
+    }), x, 0.15, (z0 + z1) / 2, group);
+    ground.scale.set(w, 0.12, Math.abs(z1 - z0));
+
+    // Tall red transparent column so player sees the attack zone
+    var pillar = mesh(G.box, new THREE.MeshBasicMaterial({
+      color: 0xff1a3a, transparent: true, opacity: 0.25, depthWrite: false
+    }), x, 2.5, (z0 + z1) / 2, group);
+    pillar.scale.set(w * 0.85, 5, Math.abs(z1 - z0) * 0.6);
+
+    // Edge markers — bright red poles at the sides
+    [-1, 1].forEach(function(k) {
+      var edge = mesh(G.box, new THREE.MeshBasicMaterial({
+        color: 0xff0033, transparent: true, opacity: 0.7
+      }), x + k * w / 2, 1.5, (z0 + z1) / 2, group);
+      edge.scale.set(0.15, 3, Math.abs(z1 - z0) * 0.8);
+    });
+
+    // Top warning bar
+    var topBar = mesh(G.box, new THREE.MeshBasicMaterial({
+      color: 0xff3b5c, transparent: true, opacity: 0.6
+    }), x, 4.5, (z0 + z1) / 2, group);
+    topBar.scale.set(w, 0.2, Math.abs(z1 - z0) * 0.5);
+
+    levelGroup.add(group);
+    group.userData.isWarn = true;
+    return group;
   }
 
   // Trail system

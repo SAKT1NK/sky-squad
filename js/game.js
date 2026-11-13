@@ -110,6 +110,14 @@
   var flashT = 0, punch = 0, ghost = 1, dmgAcc = 0, dmgT = 0, bossPhase = 0, slow = 1, flashMat = null;
   var atk = null, atkT = 0;
   function clearAtk() { if (atk) { atk.meshes.forEach(function (m) { World.remove(m); }); atk = null; } }
+  // Helper: set opacity on warn group children
+  function setWarnOpacity(m, op) {
+    if (m.userData && m.userData.isWarn) {
+      m.traverse(function(c) { if (c.isMesh && c.material && c.material.transparent) c.material.opacity = op; });
+    } else if (m.material) {
+      m.material.opacity = op;
+    }
+  }
 
   // ---------- efek boss ----------
   function showBanner(t, c, cls) {
@@ -683,8 +691,8 @@
         }
         if (atk) {
           atk.t -= dt;
-          var wop = Math.sin(time * 32) > 0 ? 0.55 : 0.2;
-          atk.meshes.forEach(function (m) { m.material.opacity = wop; });
+          var wop = Math.sin(time * 32) > 0 ? 0.75 : 0.3;
+          atk.meshes.forEach(function (m) { setWarnOpacity(m, wop); });
           if (atk.t <= 0) {
             var ak = atk, hit = ak.xs.some(function (ax) { return Math.abs(px - ax) < ak.w / 2 + 0.15; });
             clearAtk();
