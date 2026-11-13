@@ -33,13 +33,17 @@
       equipped: 'Equipped',
       equip: 'Equip',
       cleared: ' CLEAR!',
-      failed: 'MISSION FAILED ??',
-      failInfo: 'Choose green gates, avoid red gates.<br>Coins collected: ?? ',
+      failed: 'MISSION FAILED 💥',
+      failInfo: 'Choose green gates, avoid red gates.<br>Coins collected: ',
       powerInfo: 'Power: ',
       max: ' / max ',
-      stageComplete: '?? VICTORY!',
+      stageComplete: '🏆 VICTORY!',
       rewardStage: 'stage',
-      rewardCoins: 'coins'
+      rewardCoins: 'coins',
+      world: 'World ',
+      shopPow: '⚡ Power',
+      shopShield: '🛡️ Shield',
+      shopMagnet: '🧲 Magnet'
     },
     id: {
       sub: 'Kumpulin pasukan, hancurin boss di ujung.',
@@ -59,16 +63,21 @@
       equipped: 'Dipakai',
       equip: 'Pakai',
       cleared: ' CLEAR!',
-      failed: 'GAGAL ??',
-      failInfo: 'Pilih gerbang hijau, hindari yang merah.<br>Koin di jalan: ?? ',
+      failed: 'GAGAL 💥',
+      failInfo: 'Pilih gerbang hijau, hindari yang merah.<br>Koin di jalan: ',
       powerInfo: 'Kekuatan: ',
       max: ' / maks ',
-      stageComplete: '?? TAMAT!',
+      stageComplete: '🏆 TAMAT!',
       rewardStage: 'stage',
-      rewardCoins: 'koin'
+      rewardCoins: 'koin',
+      world: 'Dunia ',
+      shopPow: '⚡ Kekuatan',
+      shopShield: '🛡️ Shield',
+      shopMagnet: '🧲 Magnet'
     }
   };
   function t(k) { return (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k; }
+  function nm(o) { return (lang === 'id' && o && o.nameId) ? o.nameId : (o && o.name); }
   var YT = hasYT && !!ytgame.IN_PLAYABLES_ENV, saveReady = false, audioOn = true, paused = false;
   function persist() {
     var s = JSON.stringify(save);
@@ -205,7 +214,7 @@
       var own = !!save.skins[s.id], on = save.skin === s.id;
       var b = document.createElement('button');
       b.className = 'skin' + (on ? ' on' : '');
-      b.innerHTML = shipSvg(s) + '<div class="nm">' + s.name + '</div><div class="pr">' + (on ? t('equipped') : own ? t('equip') : '\uD83E\uDE99 ' + s.price) + '</div>';
+      b.innerHTML = shipSvg(s) + '<div class="nm">' + nm(s) + '</div><div class="pr">' + (on ? t('equipped') : own ? t('equip') : '\uD83E\uDE99 ' + s.price) + '</div>';
       b.onclick = function () {
         if (!own) {
           if (save.coins < s.price) { beep(140, 0.15, 'sawtooth'); return; }
@@ -222,9 +231,9 @@
   function magnetDuration() { return 4 + save.upMagnet * 2; }
 
   var SHOP_ITEMS = [
-    { key: 'upPow', label: '⚡ Kekuatan', desc: function () { return startPower() + ' → ' + (startPower() + 5); }, cost: function () { return 50 * (save.upPow + 1); }, color: '#6c5ce7' },
-    { key: 'upShield', label: '🛡️ Shield', desc: function () { return shieldDuration().toFixed(1) + 's → ' + (shieldDuration() + 1.5).toFixed(1) + 's'; }, cost: function () { return 40 * (save.upShield + 1); }, color: '#0984e3' },
-    { key: 'upMagnet', label: '🧲 Magnet', desc: function () { return magnetDuration().toFixed(1) + 's → ' + (magnetDuration() + 2).toFixed(1) + 's'; }, cost: function () { return 40 * (save.upMagnet + 1); }, color: '#d63031' }
+    { key: 'upPow', labelKey: 'shopPow', desc: function () { return startPower() + ' → ' + (startPower() + 5); }, cost: function () { return 50 * (save.upPow + 1); }, color: '#6c5ce7' },
+    { key: 'upShield', labelKey: 'shopShield', desc: function () { return shieldDuration().toFixed(1) + 's → ' + (shieldDuration() + 1.5).toFixed(1) + 's'; }, cost: function () { return 40 * (save.upShield + 1); }, color: '#0984e3' },
+    { key: 'upMagnet', labelKey: 'shopMagnet', desc: function () { return magnetDuration().toFixed(1) + 's → ' + (magnetDuration() + 2).toFixed(1) + 's'; }, cost: function () { return 40 * (save.upMagnet + 1); }, color: '#d63031' }
   ];
 
   // ---------- menu ----------
@@ -252,7 +261,7 @@
       var b = document.createElement('button');
       if ((n - 1) % 5 === 0) {
       var wt = document.createElement('div'); wt.className = 'wTitle';
-      wt.textContent = 'Dunia ' + ((n - 1) / 5 + 1) + ': ' + THEMES[Math.floor((n - 1) / 5) % THEMES.length].name;
+      wt.textContent = t('world') + ((n - 1) / 5 + 1) + ': ' + nm(THEMES[Math.floor((n - 1) / 5) % THEMES.length]);
       grid.appendChild(wt);
     }
     var locked = n > save.unlocked;
@@ -271,7 +280,7 @@
       btn.className = 'shopBtn';
       btn.style.setProperty('--c', item.color);
       /* style ada di CSS */
-      btn.innerHTML = '<div class="label">' + item.label + '</div><div class="cost">' + item.desc() + ' · 🪙' + item.cost() + '</div>';
+      btn.innerHTML = '<div class="label">' + t(item.labelKey) + '</div><div class="cost">' + item.desc() + ' · 🪙' + item.cost() + '</div>';
       btn.onclick = function () {
         if (save.coins < item.cost()) { beep(140, 0.15, 'sawtooth'); return; }
         save.coins -= item.cost(); save[item.key]++; persist();
@@ -341,8 +350,8 @@
 
       $('hud').classList.remove('hide'); $('pow').classList.remove('hide');
       $('bossBar').classList.add('hide');
-      $('hint').textContent = 'Geser kiri-kanan, pilih satu gerbang'; $('hint').classList.remove('hide');
-      $('hStage').textContent = 'Stage ' + n + ' · ' + lvl.theme.name;
+      $('hint').textContent = t('hintRun'); $('hint').classList.remove('hide');
+      $('hStage').textContent = t('stage') + ' ' + n + ' · ' + nm(lvl.theme);
       $('hCoins').textContent = save.coins;
       updatePowerupUI();
 
@@ -473,16 +482,16 @@
       save.coins += reward + bonusCoins;
       save.stars[n] = Math.max(save.stars[n] || 0, stars);
       save.unlocked = Math.max(save.unlocked, Math.min(STAGE_COUNT, n + 1));
-      $('rTitle').textContent = n === STAGE_COUNT ? '🏆 TAMAT!' : 'STAGE ' + n + ' CLEAR!';
+      $('rTitle').textContent = n === STAGE_COUNT ? t('stageComplete') : 'STAGE ' + n + t('cleared');
       $('rStars').innerHTML = [1, 2, 3].map(function (i) { return '<i class="' + (i <= stars ? 'on' : '') + '" style="animation-delay:' + (0.4 + i * 0.25) + 's">★</i>'; }).join('');
       for (var q = 1; q <= stars; q++) (function (q) { setTimeout(function () { beep(600 + q * 200, 0.12, 'triangle', 0.07); }, 400 + q * 250); })(q);
       $('rInfo').innerHTML = t('powerInfo') + fmt(powerAtBoss) + t('max') + fmt(lvl.best);
-      $('rRewards').innerHTML = '🪙 +' + reward + ' (stage) · +' + bonusCoins + ' (koin)';
+      $('rRewards').innerHTML = '🪙 +' + reward + ' (' + t('rewardStage') + ') · +' + bonusCoins + ' (' + t('rewardCoins') + ')';
       $('rNext').classList.toggle('hide', n >= STAGE_COUNT);
     } else {
-      $('rTitle').textContent = 'GAGAL 💥';
+      $('rTitle').textContent = t('failed');
       $('rStars').textContent = '';
-      $('rInfo').innerHTML = 'Pilih gerbang hijau, hindari yang merah.<br>Koin di jalan: 🪙 ' + stageCoins;
+      $('rInfo').innerHTML = t('failInfo') + '🪙 ' + stageCoins;
       $('rRewards').textContent = '';
       $('rNext').classList.add('hide');
     }
@@ -625,7 +634,7 @@
         $('bossBar').classList.remove('hide'); $('hint').classList.add('hide');
         $('bossLabel').textContent = lvl.big ? '👾 MEGA BOSS' : '👾 BOSS';
         ghost = 1; bossPhase = 0; $('bossBar').dataset.phase = 0; atkT = 1.6;
-        setTimeout(function () { if (state === 'boss') { $('hint').textContent = 'Hindari jalur merah!'; $('hint').classList.remove('hide'); setTimeout(function () { $('hint').classList.add('hide'); }, 2200); } }, 1200);
+        setTimeout(function () { if (state === 'boss') { $('hint').textContent = t('hintBoss'); $('hint').classList.remove('hide'); setTimeout(function () { $('hint').classList.add('hide'); }, 2200); } }, 1200);
         showBanner(lvl.big ? 'MEGA BOSS!' : 'BOSS!', '#ff4d6d', 'warn');
         flashVig('rgba(255,77,109,.8)'); beep(110, 0.5, 'sawtooth', 0.09);
       }
