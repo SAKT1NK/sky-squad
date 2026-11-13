@@ -90,15 +90,17 @@
   }
   function applySave(str) { try { var r = JSON.parse(str); if (r) for (var k in r) save[k] = r[k]; } catch (e) {} }
   function loadSave(cb) {
+    // Always load localStorage first as baseline (works on Vercel/GitHub Pages)
+    try { applySave(localStorage.getItem(SAVE_KEY)); } catch (e) {}
+    // Then overlay YouTube SDK data if available (only has data when inside Playables)
     if (hasYT && ytgame.game && ytgame.game.loadData) {
       try {
-        ytgame.game.loadData().then(function (s) { applySave(s); saveReady = true; cb(); }, function () {
-          try { applySave(localStorage.getItem(SAVE_KEY)); } catch (e) {} cb();
-        });
-      } catch (e) {
-        try { applySave(localStorage.getItem(SAVE_KEY)); } catch (e2) {} cb();
-      }
-    } else { try { applySave(localStorage.getItem(SAVE_KEY)); } catch (e) {} cb(); }
+        ytgame.game.loadData().then(function (s) {
+          if (s) applySave(s); // Only override if YouTube actually has save data
+          saveReady = true; cb();
+        }, function () { cb(); });
+      } catch (e) { cb(); }
+    } else { cb(); }
   }
 
   var state = 'menu', lvl, objs, player, wingmen, boss;
